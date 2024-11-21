@@ -1,6 +1,6 @@
 package Model;
 
-public interface JSONReader {
+public interface IJSONReader {
     public String pack();
     public Server.Mail unpack();
 }

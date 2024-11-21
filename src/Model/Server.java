@@ -7,7 +7,7 @@ import java.util.List;
 import java.io.*;
 import java.net.*;
 
-public class Server implements JSONReader {
+public class Server implements IJSONReader{
     static int currentIdMail;
 
     private String readConfig(){
@@ -28,20 +28,6 @@ public class Server implements JSONReader {
             System.out.println("Invalid ID");
         }
     }
-
-    public static void connectClient(){
-        try {
-            ServerSocket socket = new ServerSocket(8189);
-            Socket incoming = socket.accept();
-            System.out.println("Connesso fika");
-            incoming.close();
-        }
-        catch (IOException e) {
-            // rifare richiesta
-            e.printStackTrace();
-        }
-    }
-
 
     public String pack(){
         /*

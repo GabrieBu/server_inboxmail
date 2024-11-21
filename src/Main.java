@@ -10,7 +10,6 @@ public class Main {
         try {
             ScheduledExecutorService exec = Executors.newScheduledThreadPool(4);
             exec.scheduleAtFixedRate(new clientAuth(), 0, 5, TimeUnit.SECONDS);
-            System.out.println("Continuo con la mia esecuzione");
         }
         catch (Exception e) {
             e.printStackTrace();

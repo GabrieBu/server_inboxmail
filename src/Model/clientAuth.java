@@ -1,6 +1,9 @@
 package Model;
 
 
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -22,12 +25,26 @@ public class clientAuth implements Runnable{
         }
     }
 
+    private String unpack(String jsonAuth, Socket incoming){
+        JsonObject jsonObject = JsonParser.parseString(jsonAuth).getAsJsonObject();
+        System.out.println(jsonObject.toString());
+        return jsonObject.get("typed_mail_user").getAsString();
+    }
+
+    private String pack(String emailAddress){
+        //organizza che deve mandare
+        //packa
+        //manda in base all'unpack
+        return "";
+    }
+
     public void run(){
         try {
             Socket incoming = serverSocket.accept();
             BufferedReader reader = new BufferedReader(new InputStreamReader(incoming.getInputStream()));
-            String typedMail = reader.readLine();
-            System.out.println("Messaggio ricevuto dal client: " + typedMail);
+            String clientReqString = reader.readLine();
+            String typedMail = unpack(clientReqString, incoming);
+
             String line;
             try (BufferedReader file_reader = new BufferedReader(new FileReader("src/Model/users.txt"))) {
                 boolean authenticated = false;

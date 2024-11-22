@@ -6,12 +6,12 @@ public class Logger {
     public static final String GREEN = "\u001B[32m";
     public static final String WHITE = "\u001B[37m";
 
-    public void printError(String message, String address_mail) {
-        System.out.println(RED + "Error: " + message + " [" + address_mail + "]" + RESET);
+    public void logError(String message) {
+        System.out.println(RED + message + RESET);
     }
 
-    public void printSuccess(String message, String address_mail) {
-        System.out.println(GREEN + "Success: " + message + " [" + address_mail + "]" +  RESET);
+    public void logSuccess(String message) {
+        System.out.println(GREEN  + message  +  RESET);
     }
 
     public void logMessage(String message) {

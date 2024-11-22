@@ -1,50 +1,25 @@
 package Model;
 
-import java.net.Socket;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.io.*;
-import java.net.*;
 
-public class Server implements IJSONReader{
+public class Server{
     static int currentIdMail;
 
-    private String readConfig(){
+    private String readConfig() {
         String line = "-1";
-        try (BufferedReader reader = new BufferedReader(new FileReader("src/Model/config.txt"))) {
+        try (BufferedReader reader = new BufferedReader(new FileReader("src/Storage/config.txt"))) {
             line = reader.readLine();
-            System.out.println(line);
         } catch (IOException e) {
-            System.out.println(e.getMessage());
+            throw new RuntimeException(e.getMessage());
         }
         return line;
     }
 
     public Server(){
-        try {
-            currentIdMail = Integer.parseInt(readConfig());
-        } catch (NumberFormatException e) {
-            System.out.println("Invalid ID");
-        }
-    }
-
-    public String pack(){
-        /*
-        * TODO
-        * */
-        return "";
-    }
-
-    public Mail unpack(){
-        /*
-         * TODO
-         * */
-        return new Mail();
-    }
-
-    public int getCurrentIdMail() {
-        return currentIdMail;
+        currentIdMail = Integer.parseInt(readConfig());
     }
 
     public static class Mail{

@@ -1,18 +1,15 @@
+import Controller.NetworkController;
 import Controller.ServerController;
-import Model.clientAuth;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import Model.Server;
+import View.Logger;
 
 public class Main {
     public static void main(String[] args) {
-        ServerController serverController = new ServerController();
-        try {
-            ScheduledExecutorService exec = Executors.newScheduledThreadPool(4);
-            exec.scheduleAtFixedRate(new clientAuth(), 0, 5, TimeUnit.SECONDS);
-        }
-        catch (Exception e) {
-            e.printStackTrace();
-        }
+        Server server = new Server();
+        Logger logger = new Logger();
+        ServerController serverController = new ServerController(server, logger);
+        NetworkController networkController = new NetworkController(server, logger);
+
+        networkController.startServer();
     }
 }

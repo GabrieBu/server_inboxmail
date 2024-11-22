@@ -1,6 +1,6 @@
-package Model;
+package Controller;
 
-
+import View.Logger;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
@@ -8,7 +8,7 @@ import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 
-/**
+/*
  * multiple connection works, probably handled sequentially
  *  ----> ISSUE: is two clients at the same time wanna connect to the server, server won't be able
  *  to handle them not sequentially
@@ -16,18 +16,19 @@ import java.net.Socket;
 
 public class clientAuth implements Runnable{
     ServerSocket serverSocket;
-
-    public clientAuth() {
+    Logger logger;
+    public clientAuth(Logger logger, int port) throws IOException {
+        this.logger = logger;
         try {
-            serverSocket = new ServerSocket(8189);
+            serverSocket = new ServerSocket(port);
         } catch (IOException e) {
-            throw new RuntimeException("Impossibile avviare il server sulla porta 8189", e);
+            logger.logError("Unable to open socket on port " + port + "[" + e.getMessage() + "]");
+            throw new IOException();
         }
     }
 
     private String unpack(String jsonAuth, Socket incoming){
         JsonObject jsonObject = JsonParser.parseString(jsonAuth).getAsJsonObject();
-        System.out.println(jsonObject.toString());
         return jsonObject.get("typed_mail_user").getAsString();
     }
 
@@ -38,7 +39,7 @@ public class clientAuth implements Runnable{
         return "";
     }
 
-    public void run(){
+    public void run() {
         try {
             Socket incoming = serverSocket.accept();
             BufferedReader reader = new BufferedReader(new InputStreamReader(incoming.getInputStream()));
@@ -46,7 +47,7 @@ public class clientAuth implements Runnable{
             String typedMail = unpack(clientReqString, incoming);
 
             String line;
-            try (BufferedReader file_reader = new BufferedReader(new FileReader("src/Model/users.txt"))) {
+            try (BufferedReader file_reader = new BufferedReader(new FileReader("src/Storage/users.txt"))) {
                 boolean authenticated = false;
                 while(!authenticated && (line = file_reader.readLine()) != null) {
                     if(line.equalsIgnoreCase(typedMail)) {
@@ -56,18 +57,18 @@ public class clientAuth implements Runnable{
                 PrintWriter writer = new PrintWriter(incoming.getOutputStream(), true); // true for auto-flushing
                 if(authenticated) {
                     writer.println("authenticated");
-                    System.out.println("Conferma inviata al client.");
+                    logger.logSuccess("Authenticated [" + typedMail + "]");
                 } else {
                     writer.println("not_authenticated");
-                    System.out.println("Errore inviato al client");
+                    logger.logError("Not authenticated [" + typedMail + "]");
                 }
             } catch (IOException e) {
-                System.out.println(e.getMessage());
+                throw new IOException(e.getMessage());
             }
-            //chiusura socket
             incoming.close();
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            logger.logError("Error trying to connect with client");
+            throw new RuntimeException();
         }
     }
 }

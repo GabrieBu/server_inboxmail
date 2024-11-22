@@ -7,9 +7,9 @@ public class ServerController {
     private final Server server;
     private final Logger logger;
 
-    public ServerController() {
-        this.server = new Server();
-        this.logger = new Logger();
+    public ServerController(Server server, Logger logger) {
+        this.server = server;
+        this.logger = logger;
     }
 
     public Server getServer() {
@@ -19,4 +19,6 @@ public class ServerController {
     public Logger getLogger() {
         return logger;
     }
+
+    //methods
 }

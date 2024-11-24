@@ -1,12 +1,15 @@
 package Controller;
 
 import View.Logger;
+import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.google.gson.JsonArray;
 
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+
 
 /*
  * multiple connection works, probably handled sequentially
@@ -32,11 +35,32 @@ public class clientAuth implements Runnable{
         return jsonObject.get("typed_mail_user").getAsString();
     }
 
-    private String pack(String emailAddress){
-        //organizza che deve mandare
-        //packa
-        //manda in base all'unpack
-        return "";
+    private void sendData(PrintWriter writer, String userMail) {
+        try (BufferedReader fileReader = new BufferedReader(new FileReader("src/Storage/inboxes.txt"))) {
+
+            StringBuilder fileContent = new StringBuilder();
+            String line;
+            while ((line = fileReader.readLine()) != null) {
+                fileContent.append(line);
+            }
+
+            JsonObject jsonObject = JsonParser.parseString(fileContent.toString()).getAsJsonObject();
+            JsonObject response = new JsonObject();
+
+            if (jsonObject.has(userMail)) {
+                JsonArray inbox = jsonObject.getAsJsonArray(userMail);
+                response.addProperty("authentication", true);
+                response.addProperty("inbox", inbox.toString());
+                logger.logSuccess("Client authenticated [" + userMail + "]");
+            } else {
+                logger.logError("Not authenticated [" + userMail + "]");
+                response.addProperty("authentication", false);
+            }
+            logger.logMessage(response.toString());
+            writer.println(response);
+        } catch (IOException e) {
+            throw new RuntimeException("Error reading inbox file: " + e.getMessage());
+        }
     }
 
     public void run() {
@@ -54,14 +78,8 @@ public class clientAuth implements Runnable{
                         authenticated = true;
                     }
                 }
-                PrintWriter writer = new PrintWriter(incoming.getOutputStream(), true); // true for auto-flushing
-                if(authenticated) {
-                    writer.println("authenticated");
-                    logger.logSuccess("Authenticated [" + typedMail + "]");
-                } else {
-                    writer.println("not_authenticated");
-                    logger.logError("Not authenticated [" + typedMail + "]");
-                }
+                PrintWriter writer = new PrintWriter(incoming.getOutputStream(), true);
+                sendData(writer, typedMail);// true for auto-flushing
             } catch (IOException e) {
                 throw new IOException(e.getMessage());
             }

@@ -1,44 +1,41 @@
 {
-    "a@b.com": {
-        [
-            {
-                "id": 1
-                "from": "c@d.com",
-                "to": ["x", "y", "z", "a@b.com"]
-                "subject": "SubjectCazzo",
-                "body": "awodjaowdjm",
-            },
-            {
-                "id": 2
-                "from": "e@f.com",
-                "to": ["x", "y", "z", "a@b.com"]
-                "subject": "SubjectCazzooo",
-                "body": "adiowuhhauiwkbn",
-            },
-            {
-                "id": 3
-                "from": "c@d.com",
-                "to": ["x", "y", "z", "a@b.com"]
-                "subject": "SubjectCazzo",
-                "body": "akdmamwdnawdiubaw",
-            },
-            {
-                "id": 4
-                "from": "c@d.com",
-                "to": ["x", "y", "z", "a@b.com"]
-                "subject": "SubjectCazzo",
-                "body": "akdmamwdnawdiubaw",
-            }
-        ]
-    },
-    "b@c.com": {
-            [
-                {
-                    "from": "c@d.com",
-                    "to": ["x", "y", "z", "a@b.com"]
-                    "subject": "SubjectCazzo",
-                    "body": "awodjaowdjm",
-                }
-            ]
-    },
+    "a@b.com": [
+        {
+            "id": 1,
+            "from": "c@d.com",
+            "to": ["x", "y", "z", "a@b.com"],
+            "subject": "SubjectCazzo",
+            "body": "awodjaowdjm"
+        },
+        {
+            "id": 2,
+            "from": "e@f.com",
+            "to": ["x", "y", "z", "a@b.com"],
+            "subject": "SubjectCazzooo",
+            "body": "adiowuhhauiwkbn"
+        },
+        {
+            "id": 3,
+            "from": "c@d.com",
+            "to": ["x", "y", "z", "a@b.com"],
+            "subject": "SubjectCazzo",
+            "body": "akdmamwdnawdiubaw"
+        },
+        {
+            "id": 4,
+            "from": "c@d.com",
+            "to": ["x", "y", "z", "a@b.com"],
+            "subject": "SubjectCazzo",
+            "body": "akdmamwdnawdiubaw"
+        }
+    ],
+    "b@c.com": [
+        {
+            "id": 1,
+            "from": "c@d.com",
+            "to": ["x", "y", "z", "a@b.com"],
+            "subject": "SubjectCazzo",
+            "body": "awodjaowdjm"
+        }
+    ]
 }

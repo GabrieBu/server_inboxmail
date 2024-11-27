@@ -10,6 +10,11 @@ public class Main {
         ServerController serverController = new ServerController(server, logger);
         NetworkController networkController = new NetworkController(server, logger);
 
-        networkController.startServer();
+        try{
+            networkController.startServer();
+        }
+        catch(Exception e){
+            e.printStackTrace();
+        }
     }
 }

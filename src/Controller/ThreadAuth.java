@@ -1,13 +1,11 @@
 package Controller;
 
 import View.Logger;
-import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonArray;
 
 import java.io.*;
-import java.net.ServerSocket;
 import java.net.Socket;
 
 
@@ -17,20 +15,18 @@ import java.net.Socket;
  *  to handle them not sequentially
  */
 
-public class clientAuth implements Runnable{
-    ServerSocket serverSocket;
+public class ThreadAuth implements Runnable{
     Logger logger;
-    public clientAuth(Logger logger, int port) throws IOException {
+    String clientReqString;
+    Socket sock;
+
+    public ThreadAuth(Logger logger, String clientReqString, Socket socket) {
         this.logger = logger;
-        try {
-            serverSocket = new ServerSocket(port);
-        } catch (IOException e) {
-            logger.logError("Unable to open socket on port " + port + "[" + e.getMessage() + "]");
-            throw new IOException();
-        }
+        this.clientReqString = clientReqString;
+        this.sock = socket;
     }
 
-    private String unpack(String jsonAuth, Socket incoming){
+    private String unpack(String jsonAuth){
         JsonObject jsonObject = JsonParser.parseString(jsonAuth).getAsJsonObject();
         return jsonObject.get("typed_mail_user").getAsString();
     }
@@ -49,14 +45,14 @@ public class clientAuth implements Runnable{
 
             if (jsonObject.has(userMail)) {
                 JsonArray inbox = jsonObject.getAsJsonArray(userMail);
-                response.addProperty("authentication", true);
+                response.addProperty("type", "response_auth");
+                response.addProperty("authenticated", true);
                 response.addProperty("inbox", inbox.toString());
                 logger.logSuccess("Client authenticated [" + userMail + "]");
             } else {
                 logger.logError("Not authenticated [" + userMail + "]");
                 response.addProperty("authentication", false);
             }
-            logger.logMessage(response.toString());
             writer.println(response);
         } catch (IOException e) {
             throw new RuntimeException("Error reading inbox file: " + e.getMessage());
@@ -65,11 +61,8 @@ public class clientAuth implements Runnable{
 
     public void run() {
         try {
-            Socket incoming = serverSocket.accept();
-            BufferedReader reader = new BufferedReader(new InputStreamReader(incoming.getInputStream()));
-            String clientReqString = reader.readLine();
-            String typedMail = unpack(clientReqString, incoming);
-
+            logger.logMessage("Starting client authentication...");
+            String typedMail = unpack(this.clientReqString);
             String line;
             try (BufferedReader file_reader = new BufferedReader(new FileReader("src/Storage/users.txt"))) {
                 boolean authenticated = false;
@@ -78,12 +71,12 @@ public class clientAuth implements Runnable{
                         authenticated = true;
                     }
                 }
-                PrintWriter writer = new PrintWriter(incoming.getOutputStream(), true);
+                PrintWriter writer = new PrintWriter(this.sock.getOutputStream(), true);
                 sendData(writer, typedMail);// true for auto-flushing
             } catch (IOException e) {
                 throw new IOException(e.getMessage());
             }
-            incoming.close();
+            sock.close();
         } catch (IOException e) {
             logger.logError("Error trying to connect with client");
             throw new RuntimeException();

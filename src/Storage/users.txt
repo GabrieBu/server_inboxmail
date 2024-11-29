@@ -1,4 +1,0 @@
-a@b.com
-b@c.com
-c@d.com
-d@e.com

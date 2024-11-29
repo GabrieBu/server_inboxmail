@@ -1,5 +1,5 @@
 {
-    "a@b.com": [
+   "inbox": [
         {
             "id": 1,
             "from": "c@d.com",
@@ -28,14 +28,5 @@
             "subject": "SubjectCazzo",
             "body": "akdmamwdnawdiubaw"
         }
-    ],
-    "b@c.com": [
-        {
-            "id": 1,
-            "from": "c@d.com",
-            "to": ["x", "y", "z", "a@b.com"],
-            "subject": "SubjectCazzo",
-            "body": "awodjaowdjm"
-        }
-    ]
+   ]
 }

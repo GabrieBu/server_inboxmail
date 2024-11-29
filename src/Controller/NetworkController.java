@@ -6,7 +6,6 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -29,31 +28,32 @@ public class NetworkController {
         return jsonObject.get("type").getAsString();
     }
 
-    public void startServer() throws IOException {
+    public void startServer(){
         ExecutorService threadPool = Executors.newFixedThreadPool(poolSize);
         try {
             ServerSocket serverSocket = new ServerSocket(port);
-            while(true) { //check how to stop server
+            while(true) {
                 logger.logMessage("Server listening on port " + port);
                 Socket sock = serverSocket.accept();
                 BufferedReader reader = new BufferedReader(new InputStreamReader(sock.getInputStream()));
                 String clientReqString = reader.readLine();
                 String typeRequestString = unpack(clientReqString);
+
                 if(typeRequestString.equals("authentication")){
-                    threadPool.execute(new ThreadAuth(logger, clientReqString, sock));
+                    threadPool.execute(new RunnableAuth(logger, clientReqString, sock, server));
                 }
                 else if(typeRequestString.equals("send")){
-                    threadPool.execute(new ThreadSend(logger, sock));
+                    threadPool.execute(new RunnableSend(logger, sock, server));
                 }
-                else if (typeRequestString.equals("delete")) {
-                    //threadPool.execute(new clientAuth(logger, sock));
+                else if(typeRequestString.equals("delete")) {
+                    threadPool.execute(new RunnableDelete(logger, sock, server));
                 }
-                else{
-                    //threadPool.execute(new clientAuth(logger, sock));
+                else{ //code reply
+                    threadPool.execute(new RunnableReply(logger, sock, server));
                 }
             }
         }
-        catch (IOException e) {
+        catch (Exception e) {
             logger.logError("Server is not listening. Error occured: " + e.getMessage());
         }
         finally {

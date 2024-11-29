@@ -1,14 +1,16 @@
 package Controller;
 
+import Model.Server;
 import View.Logger;
 
 import java.net.Socket;
 
-public class ThreadSend implements Runnable {
+public class RunnableDelete implements Runnable{
     private Socket socket;
     private Logger logger;
+    private Server server;
 
-    public ThreadSend(Logger logger, Socket socket) {
+    public RunnableDelete(Logger logger, Socket socket, Server server) {
         this.socket = socket;
         this.logger = logger;
     }

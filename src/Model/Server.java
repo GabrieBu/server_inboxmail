@@ -6,7 +6,11 @@ import java.util.List;
 import java.io.*;
 
 public class Server{
-    static int currentIdMail;
+    //private static int currentIdMail; //to_check static
+
+    public Server(){
+        //currentIdMail = Integer.parseInt(readConfig());
+    }
 
     private String readConfig() {
         String line = "-1";
@@ -16,10 +20,6 @@ public class Server{
             throw new RuntimeException(e.getMessage());
         }
         return line;
-    }
-
-    public Server(){
-        currentIdMail = Integer.parseInt(readConfig());
     }
 
     public static class Mail{
@@ -36,14 +36,14 @@ public class Server{
             date_time = LocalDateTime.now();
         }
 
-        public Mail(String from, List<String> to, String subject, String body) {
-            this.idMail = currentIdMail;
+        public Mail(int idMail, String from, List<String> to, String subject, String body) {
+            this.idMail = idMail;
             this.from = from;
             this.to = to; //to_check
             this.subject = subject;
             this.body = body;
             this.date_time = LocalDateTime.now();
-            currentIdMail++;
+            //currentIdMail++;
         }
 
         public int getId() {

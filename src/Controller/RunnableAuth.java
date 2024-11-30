@@ -86,7 +86,6 @@ public class RunnableAuth implements Runnable{
 
     public void run() {
         try {
-            logger.logMessage("Starting client authentication...");
             String typedMail = unpack(this.clientReqString);
             PrintWriter writer = new PrintWriter(this.sock.getOutputStream(), true);
             sendData(writer, typedMail);// true for auto-flushing

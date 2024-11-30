@@ -37,6 +37,7 @@ public class NetworkController {
                 Socket sock = serverSocket.accept();
                 BufferedReader reader = new BufferedReader(new InputStreamReader(sock.getInputStream()));
                 String clientReqString = reader.readLine();
+                reader.close();
                 String typeRequestString = unpack(clientReqString);
 
                 if(typeRequestString.equals("authentication")){

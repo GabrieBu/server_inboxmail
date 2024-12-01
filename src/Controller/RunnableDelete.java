@@ -14,20 +14,20 @@ import java.nio.file.Paths;
 public class RunnableDelete implements Runnable{
     private Socket socket;
     private Logger logger;
+    String clientReqString;
     private Server server;
 
-    public RunnableDelete(Logger logger, Socket socket, Server server) {
+    public RunnableDelete(Logger logger, String cientReqString, Socket socket, Server server) {
         this.socket = socket;
         this.logger = logger;
+        this.clientReqString = cientReqString;
     }
 
     public void run() {
         try {
-            BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-            String jsonDelete = reader.readLine();
-            reader.close();
+            logger.logMessage(clientReqString);
             socket.close();
-            JsonObject jsonObjectReq = JsonParser.parseString(jsonDelete).getAsJsonObject();
+            JsonObject jsonObjectReq = JsonParser.parseString(clientReqString).getAsJsonObject();
             String mailUser = jsonObjectReq.get("user").getAsString();
             String filePathName = "src/Storage/inboxes/" + mailUser + ".txt";
 

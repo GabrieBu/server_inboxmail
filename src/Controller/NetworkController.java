@@ -37,7 +37,6 @@ public class NetworkController {
                 Socket sock = serverSocket.accept();
                 BufferedReader reader = new BufferedReader(new InputStreamReader(sock.getInputStream()));
                 String clientReqString = reader.readLine();
-                reader.close();
                 String typeRequestString = unpack(clientReqString);
 
                 if(typeRequestString.equals("authentication")){
@@ -47,7 +46,7 @@ public class NetworkController {
                     threadPool.execute(new RunnableSend(logger, sock, server));
                 }
                 else if(typeRequestString.equals("delete")) {
-                    threadPool.execute(new RunnableDelete(logger, sock, server));
+                    threadPool.execute(new RunnableDelete(logger, clientReqString, sock, server));
                 }
                 else{ //code reply
                     threadPool.execute(new RunnableReply(logger, sock, server));

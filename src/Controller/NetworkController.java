@@ -43,7 +43,7 @@ public class NetworkController {
                     threadPool.execute(new RunnableAuth(logger, clientReqString, sock, server));
                 }
                 else if(typeRequestString.equals("send")){
-                    threadPool.execute(new RunnableSend(logger, sock, server));
+                    threadPool.execute(new RunnableSend(logger,clientReqString, sock, server));
                 }
                 else if(typeRequestString.equals("delete")) {
                     threadPool.execute(new RunnableDelete(logger, clientReqString, sock, server));

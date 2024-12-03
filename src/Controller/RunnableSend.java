@@ -33,7 +33,6 @@ public class RunnableSend implements Runnable {
             logger.logMessage(clientReqString);
             socket.close();
             JsonObject jsonObjectReq = JsonParser.parseString(clientReqString).getAsJsonObject();
-            System.out.println(jsonObjectReq.toString());
             JsonObject mail = jsonObjectReq.get("mail").getAsJsonObject();
             String ToSend = mail.get("to").getAsString();
             ToSend=ToSend.replaceAll("[\"]", "");
@@ -47,23 +46,26 @@ public class RunnableSend implements Runnable {
     }
 
     private void sendFile(JsonObject reply, String[] AllMails) {
+        System.out.println("SEI NEL SENDFILE"+ reply.toString());
         try {
             Socket socket = new Socket("localhost", 8190);
             OutputStream outputStream = socket.getOutputStream();
-            PrintWriter writer = new PrintWriter(outputStream, true); // true for auto-flushing
-            writer.write(reply.toString());
+            PrintWriter writer = new PrintWriter(outputStream, true); // Auto-flushing abilitato
 
-            System.out.println(reply.toString());
+            // Log dei destinatari
+            System.out.println("Inviando email ai seguenti destinatari tramite socket:");
             for (String mail : AllMails) {
-                System.out.println(mail);
-                writer.write(reply.toString());
-                System.out.println("File successfully overwritten.");
-
+                System.out.println("- " + mail);
             }
-            System.out.println("File successfully overwritten.");
+            // Invio del messaggio al client ricevente
+            writer.println(reply.toString());
+            writer.flush();
+            System.out.println("Messaggio inviato correttamente tramite socket.");
+
             socket.close();
         } catch (IOException e) {
-            System.err.println("Error writing to file: " + e.getMessage());
+            System.err.println("Errore durante l'invio del file: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 

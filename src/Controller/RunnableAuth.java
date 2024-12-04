@@ -21,42 +21,57 @@ import java.nio.file.Paths;
 public class RunnableAuth implements Runnable{
     Logger logger;
     String clientReqString;
-    Socket sock;
     Server server;
 
-    public RunnableAuth(Logger logger, String clientReqString, Socket socket, Server server) {
+    public RunnableAuth(Logger logger, String clientReqString, Server server) {
         this.logger = logger;
         this.clientReqString = clientReqString;
-        this.sock = socket;
         this.server = server;
     }
 
-    private String unpack(String jsonAuth){
+    private String unpackMail(String jsonAuth){
         JsonObject jsonObject = JsonParser.parseString(jsonAuth).getAsJsonObject();
         return jsonObject.get("typed_mail_user").getAsString();
     }
 
-    private void sendData(PrintWriter writer, String userMail) {
-        JsonObject response = new JsonObject();
-        logger.logSuccess(userMail);
-        if(checkEmailInFileNames(userMail)){
-            String filePathName = "src/Storage/inboxes/" + userMail + ".txt";
-            try{
-                String fileContent = Files.readString(Paths.get(filePathName));
-                JsonObject jsonObject = JsonParser.parseString(fileContent).getAsJsonObject();
+    private int unpackPort(String jsonAuth){
+        JsonObject jsonObject = JsonParser.parseString(jsonAuth).getAsJsonObject();
+
+        return Integer.parseInt(jsonObject.get("port").getAsString());
+    }
+
+    private void sendData(int clientPort, String userMail) {
+        try {
+            Socket clientSocket = new Socket("localhost", clientPort);
+            PrintWriter writer = new PrintWriter(clientSocket.getOutputStream(), true);
+            JsonObject response = new JsonObject();
+            logger.logSuccess(userMail);
+            if (checkEmailInFileNames(userMail)) {
+                String filePathName = "src/Storage/inboxes/" + userMail + ".txt";
+                try {
+                    String fileContent = Files.readString(Paths.get(filePathName));
+                    JsonObject jsonObject = JsonParser.parseString(fileContent).getAsJsonObject();
+                    response.addProperty("type", "response_auth");
+                    response.addProperty("authenticated", true);
+                    JsonArray inbox = jsonObject.getAsJsonArray("inbox");
+                    response.addProperty("inbox", inbox.toString());
+                    // Store the client's port for future communications
+                    server.putPort(userMail, clientPort);  // Storing the email-port mapping
+
+                } catch (IOException e) {
+                    throw new RuntimeException("Error reading inbox file: " + e.getMessage());
+                }
+            } else {
                 response.addProperty("type", "response_auth");
-                response.addProperty("authenticated", true);
-                JsonArray inbox = jsonObject.getAsJsonArray("inbox");
-                response.addProperty("inbox", inbox.toString());
-            } catch (IOException e) {
-                throw new RuntimeException("Error reading inbox file: " + e.getMessage());
+                response.addProperty("authenticated", false);
             }
+            writer.println(response); //in ogni caso manda false o true
+            clientSocket.close(); //forse va messo in un finally
         }
-        else{
-            response.addProperty("type", "response_auth");
-            response.addProperty("authenticated", false);
+        catch( IOException e){
+            logger.logError("Can't open the client socket!");
+            throw new RuntimeException("Error reading inbox file: " + e.getMessage());
         }
-        writer.println(response);
     }
 
     private static boolean checkEmailInFileNames(String email) {
@@ -85,14 +100,9 @@ public class RunnableAuth implements Runnable{
     }
 
     public void run() {
-        try {
-            String typedMail = unpack(this.clientReqString);
-            PrintWriter writer = new PrintWriter(this.sock.getOutputStream(), true);
-            sendData(writer, typedMail);// true for auto-flushing
-            sock.close();
-        } catch (IOException e) {
-            logger.logError("Error trying to connect with client");
-            throw new RuntimeException();
-        }
+        String typedMail = unpackMail(this.clientReqString);
+        int clientPort = unpackPort(this.clientReqString);
+        logger.logMessage("ClientPort: " + clientPort);
+        sendData(clientPort, typedMail);// true for auto-flushing
     }
 }

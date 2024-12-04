@@ -38,12 +38,13 @@ public class NetworkController {
                 BufferedReader reader = new BufferedReader(new InputStreamReader(sock.getInputStream()));
                 String clientReqString = reader.readLine();
                 String typeRequestString = unpack(clientReqString);
-
+                sock.close();
                 if(typeRequestString.equals("authentication")){
-                    threadPool.execute(new RunnableAuth(logger, clientReqString, sock, server));
+                    threadPool.execute(new RunnableAuth(logger, clientReqString, server));
                 }
                 else if(typeRequestString.equals("send")){
-                    threadPool.execute(new RunnableSend(logger,clientReqString, sock, server));
+                    logger.logMessage("Trying to send");
+                    threadPool.execute(new RunnableSend(logger,clientReqString, server));
                 }
                 else if(typeRequestString.equals("delete")) {
                     threadPool.execute(new RunnableDelete(logger, clientReqString, sock, server));

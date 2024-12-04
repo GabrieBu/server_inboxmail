@@ -15,59 +15,51 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 
 public class RunnableSend implements Runnable {
-    private Socket socket;
     private Logger logger;
-    private Server server;
+    private final Server server;
     String clientReqString;
 
-    public RunnableSend(Logger logger,String clientReqString, Socket socket, Server server) {
-        this.socket = socket;
+    public RunnableSend(Logger logger,String clientReqString, Server server) {
         this.logger = logger;
         this.server = server;
         this.clientReqString=clientReqString;
     }
 
     public void run() {
-
         try {
             logger.logMessage(clientReqString);
-            socket.close();
             JsonObject jsonObjectReq = JsonParser.parseString(clientReqString).getAsJsonObject();
             JsonObject mail = jsonObjectReq.get("mail").getAsJsonObject();
-            String ToSend = mail.get("to").getAsString();
-            ToSend=ToSend.replaceAll("[\"]", "");
-            String[] AllMails = ToSend.split(",");
-            sendFile(jsonObjectReq,AllMails);
-            logger.logSuccess("Mail sended to " + ToSend + " correctly");
-        }
-        catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
+            String toSend = mail.get("to").getAsString();
+            toSend=toSend.replaceAll("[\"]", "");
+            String[] allMails = toSend.split(",");
 
-    private void sendFile(JsonObject reply, String[] AllMails) {
-        System.out.println("SEI NEL SENDFILE"+ reply.toString());
-        try {
-            Socket socket = new Socket("localhost", 8190);
-            OutputStream outputStream = socket.getOutputStream();
-            PrintWriter writer = new PrintWriter(outputStream, true); // Auto-flushing abilitato
-
-            // Log dei destinatari
-            System.out.println("Inviando email ai seguenti destinatari tramite socket:");
-            for (String mail : AllMails) {
-                System.out.println("- " + mail);
+            for (String email : allMails) {
+                int clientPort = server.getPort(email);
+                if (clientPort != -1) { // check if the port exists for this email
+                    Socket clientSocket = new Socket("localhost", clientPort);
+                    sendFile(jsonObjectReq, email, clientSocket);
+                    clientSocket.close();
+                    logger.logSuccess("Mail sent to " + email + " correctly on port " + clientPort);
+                } else {
+                    logger.logSuccess("Client is not online. DB overwritten!");
+                }
             }
-            // Invio del messaggio al client ricevente
-            writer.println(reply.toString());
-            writer.flush();
-            System.out.println("Messaggio inviato correttamente tramite socket.");
-
-            socket.close();
         } catch (IOException e) {
-            System.err.println("Errore durante l'invio del file: " + e.getMessage());
             e.printStackTrace();
         }
     }
 
-
+    private void sendFile(JsonObject emailToBeSent, String email, Socket socket) {
+        try {
+            logger.logMessage("Sending email: " + emailToBeSent);
+            OutputStream outputStream = socket.getOutputStream();
+            PrintWriter writer = new PrintWriter(outputStream, true); // Auto-flushing enabled
+            writer.println(email);
+            writer.flush();
+        } catch (IOException e) {
+            System.err.println("Error while sending email: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
 }

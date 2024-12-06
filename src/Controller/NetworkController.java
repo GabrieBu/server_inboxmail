@@ -15,8 +15,8 @@ import java.util.concurrent.Executors;
 public class NetworkController {
     private final Server server;
     private final Logger logger;
-    private final int port = 8189;
-    private final int poolSize = 4;
+    private final int SERVER_PORT = 8189;
+    private final int POOL_SIZE = 16;
 
     public NetworkController(Server server, Logger logger) {
         this.server = server;
@@ -29,33 +29,43 @@ public class NetworkController {
     }
 
     public void startServer(){
-        ExecutorService threadPool = Executors.newFixedThreadPool(poolSize);
+        ExecutorService threadPool = Executors.newFixedThreadPool(POOL_SIZE);
         try {
-            ServerSocket serverSocket = new ServerSocket(port);
+            ServerSocket serverSocket = new ServerSocket(SERVER_PORT);
             while(true) {
-                logger.logMessage("Server listening on port " + port);
+                logger.logMessage("Server listening on port " + SERVER_PORT);
                 Socket sock = serverSocket.accept();
                 BufferedReader reader = new BufferedReader(new InputStreamReader(sock.getInputStream()));
                 String clientReqString = reader.readLine();
                 String typeRequestString = unpack(clientReqString);
                 sock.close();
-                if(typeRequestString.equals("authentication")){
-                    threadPool.execute(new RunnableAuth(logger, clientReqString, server));
-                }
-                else if(typeRequestString.equals("send")){
-                    logger.logMessage("Trying to send");
-                    threadPool.execute(new RunnableSend(logger,clientReqString, server));
-                }
-                else if(typeRequestString.equals("delete")) {
-                    threadPool.execute(new RunnableDelete(logger, clientReqString, sock, server));
-                }
-                else{ //code reply
-                    threadPool.execute(new RunnableReply(logger, sock, server));
+
+                switch (typeRequestString) {
+                    case "authentication":
+                        threadPool.execute(new RunnableAuth(logger, clientReqString, server));
+                        break;
+                    case "send":
+                        threadPool.execute(new RunnableSend(logger, clientReqString, server));
+                        break;
+                    case "delete":
+                        threadPool.execute(new RunnableDelete(logger, clientReqString));
+                        break;
+                    case "reply":
+                        threadPool.execute(new RunnableReply(logger));
+                        break;
+                    case "handshake":
+                        threadPool.execute(new RunnableHandshakeDisconnect(logger, clientReqString, server, typeRequestString));
+                        break;
+                    case "disconnect":
+                        threadPool.execute(new RunnableHandshakeDisconnect(logger, clientReqString, server, typeRequestString));
+                    default:
+                        logger.logError("Unrecognized type " + typeRequestString);
                 }
             }
         }
         catch (Exception e) {
             logger.logError("Server is not listening. Error occured: " + e.getMessage());
+            //non so che fare qui
         }
         finally {
             logger.logMessage("Server is going to be stopped!");

@@ -6,17 +6,13 @@ import View.Logger;
 import java.net.Socket;
 
 public class RunnableReply implements Runnable {
-    private Socket socket;
-    private Logger logger;
-    private Server server;
+    private final Logger logger;
 
-    public RunnableReply(Logger logger, Socket socket, Server server) {
-        this.socket = socket;
+    public RunnableReply(Logger logger) {
         this.logger = logger;
-        this.server = server;
     }
 
     public void run() {
-        logger.logMessage("Running!");
+        logger.logMessage("Running Reply!");
     }
 }

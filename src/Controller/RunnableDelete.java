@@ -7,26 +7,20 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
 import java.io.*;
-import java.net.Socket;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
 public class RunnableDelete implements Runnable{
-    private Socket socket;
-    private Logger logger;
-    String clientReqString;
-    private Server server;
+    private final Logger logger;
+    private final String clientReqString;
 
-    public RunnableDelete(Logger logger, String cientReqString, Socket socket, Server server) {
-        this.socket = socket;
+    public RunnableDelete(Logger logger, String cientReqString) {
         this.logger = logger;
         this.clientReqString = cientReqString;
     }
 
     public void run() {
         try {
-            logger.logMessage(clientReqString);
-            socket.close();
             JsonObject jsonObjectReq = JsonParser.parseString(clientReqString).getAsJsonObject();
             String mailUser = jsonObjectReq.get("user").getAsString();
             String filePathName = "src/Storage/inboxes/" + mailUser + ".txt";

@@ -1,1 +1,1 @@
-{"inbox":[]}
+{"inbox":[{"from":"b@c.com","to":["a@b.com"],"subject":"ProvaREPLY","body":"prova","date":"2024-12-07T18:59:01.074342"},{"from":"c@d.com","to":["a@b.com","b@c.com"],"subject":"ProvissimaFinale","body":"provaaa","date":"2024-12-07T19:01:56.599080"},{"from":"c@d.com","to":["a@b.com","b@c.com"],"subject":"La prova finale di r.a.","body":"r.a.","date":"2024-12-07T19:06:58.411130"}]}

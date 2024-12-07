@@ -49,45 +49,45 @@ public class RunnableSend implements Runnable {
         return false;
     }
 
-    // @TODO
-    public void updateFile(){
-        /*if (checkEmailInFileNames(userMail)) {
-            String filePathName = "src/Storage/inboxes/" + userMail + ".txt";
+
+    public void updateFile(String emailAddress, JsonObject emailToBeSent){
+        if (checkEmailInFileNames(emailAddress)) {
+            String filePathName = "src/Storage/inboxes/" + emailAddress + ".txt";
             try {
                 String fileContent = Files.readString(Paths.get(filePathName));
                 JsonObject jsonObject = JsonParser.parseString(fileContent).getAsJsonObject();
                 JsonArray inbox = jsonObject.getAsJsonArray("inbox");
-                server.putPort(userMail, clientPort);  // storing the email-port mapping
+                inbox.add(emailToBeSent); //dovrei inserire in prima posizione in tempo ragionevole
+                Files.writeString(Paths.get(filePathName), jsonObject.toString());
             } catch (IOException e) {
                 throw new RuntimeException("Error reading inbox file: " + e.getMessage());
             }
-        }*/
+        }
     }
 
     public void run() {
         try {
             JsonObject jsonObjectReq = JsonParser.parseString(clientReqString).getAsJsonObject();
             JsonObject mail = jsonObjectReq.get("mail").getAsJsonObject();
-            String toSend = mail.get("to").getAsString();
-            toSend=toSend.replaceAll("[\"]", "");
-            String[] allMails = toSend.split(",");
+            JsonArray allMails = mail.getAsJsonArray("to");
 
-            for (String email : allMails) {
-                int clientPort = server.getPort(email);
+            for (int i = 0; i < allMails.size(); i++) {
+                String emailAddress = allMails.get(i).getAsString();
+                int clientPort = server.getPort(allMails.get(i).getAsString());
                 if (clientPort != -1) { // check if the port exists for this email
                     Socket clientSocket = new Socket("localhost", clientPort);
-                    sendFile(jsonObjectReq, email, clientSocket);
+                    sendFile(jsonObjectReq, clientSocket);
                     clientSocket.close();
-                    logger.logSuccess("Mail sent to " + email + " correctly on port " + clientPort);
+                    logger.logSuccess("Mail sent to " + emailAddress + " correctly on port " + clientPort);
                 }
-                updateFile();
+                updateFile(emailAddress, mail);
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    private void sendFile(JsonObject emailToBeSent, String email, Socket socket) {
+    private void sendFile(JsonObject emailToBeSent, Socket socket) {
         try {
             OutputStream outputStream = socket.getOutputStream();
             PrintWriter writer = new PrintWriter(outputStream, true); // Auto-flushing enabled

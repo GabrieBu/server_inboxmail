@@ -54,6 +54,8 @@ public class NetworkController {
                     case "reply_all":
                         threadPool.execute(new RunnableReply(logger, clientReqString, server, typeRequestString));
                         break;
+                    case "forward":
+                        threadPool.execute(new RunnableForward(logger, clientReqString, server));
                     case "handshake":
                         threadPool.execute(new RunnableHandshakeDisconnect(logger, clientReqString, server, typeRequestString));
                         break;

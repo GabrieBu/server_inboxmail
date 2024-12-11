@@ -34,9 +34,10 @@ public class RunnableReply implements Runnable {
             String from = mail.get("from").getAsString();
             JsonArray allMails = mail.getAsJsonArray("to");
             String toRecipient = allMails.get(0).getAsString();
-            int clientPort = server.getPort(toRecipient);
+
             try {
-                if (clientPort != -1) { // check if the port exists for this email
+                if(this.server.hasKey(toRecipient)) {
+                    int clientPort = server.getPort(toRecipient);
                     Socket clientSocket = new Socket("localhost", clientPort);
                     sendFile(jsonObjectReq, clientSocket);
                     clientSocket.close();
@@ -55,8 +56,8 @@ public class RunnableReply implements Runnable {
             try {
                 for (int i = 0; i < allMails.size(); i++) {
                     String toRecipient = allMails.get(i).getAsString();
-                    int clientPort = server.getPort(toRecipient);
-                    if (clientPort != -1) { // check if the port exists for this email
+                    if(this.server.hasKey(toRecipient)) {
+                        int clientPort = server.getPort(toRecipient);
                         Socket clientSocket = new Socket("localhost", clientPort);
                         sendFile(jsonObjectReq, clientSocket);
                         clientSocket.close();
@@ -82,41 +83,15 @@ public class RunnableReply implements Runnable {
     }
 
     public void updateFile(String emailAddress, JsonObject emailToBeSent){
-        if (checkEmailInFileNames(emailAddress)) {
-            String filePathName = "src/Storage/inboxes/" + emailAddress + ".txt";
-            try {
-                String fileContent = Files.readString(Paths.get(filePathName));
-                JsonObject jsonObject = JsonParser.parseString(fileContent).getAsJsonObject();
-                JsonArray inbox = jsonObject.getAsJsonArray("inbox");
-                inbox.add(emailToBeSent); //dovrei inserire in prima posizione in tempo ragionevole
-                Files.writeString(Paths.get(filePathName), jsonObject.toString());
-            } catch (IOException e) {
-                throw new RuntimeException("Error reading inbox file: " + e.getMessage());
-            }
+        String filePathName = "src/Storage/inboxes/" + emailAddress + ".txt";
+        try {
+            String fileContent = Files.readString(Paths.get(filePathName));
+            JsonObject jsonObject = JsonParser.parseString(fileContent).getAsJsonObject();
+            JsonArray inbox = jsonObject.getAsJsonArray("inbox");
+            inbox.add(emailToBeSent); //dovrei inserire in prima posizione in tempo ragionevole
+            Files.writeString(Paths.get(filePathName), jsonObject.toString());
+        } catch (IOException e) {
+            throw new RuntimeException("Error reading inbox file: " + e.getMessage());
         }
-    }
-
-    private static boolean checkEmailInFileNames(String email) {
-        File directory = new File("src/Storage/inboxes/");
-        File[] files = directory.listFiles((dir, name) -> name.endsWith(".txt"));
-        if (files == null) {
-            return false;
-        }
-
-        for (File file : files) {
-            String fileNameWithoutExtension = getFileNameWithoutExtension(file.getName());
-            if (fileNameWithoutExtension.equals(email)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private static String getFileNameWithoutExtension(String fileName) {
-        int lastDotIndex = fileName.lastIndexOf(".");
-        if (lastDotIndex == -1) {
-            return fileName;
-        }
-        return fileName.substring(0, lastDotIndex);  // remove the extension
     }
 }

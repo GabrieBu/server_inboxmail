@@ -13,6 +13,7 @@ import java.io.PrintWriter;
 import java.net.Socket;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.HashMap;
 
 public class RunnableSend implements Runnable {
     private final Logger logger;
@@ -51,17 +52,15 @@ public class RunnableSend implements Runnable {
 
 
     public void updateFile(String emailAddress, JsonObject emailToBeSent){
-        if (checkEmailInFileNames(emailAddress)) {
-            String filePathName = "src/Storage/inboxes/" + emailAddress + ".txt";
-            try {
-                String fileContent = Files.readString(Paths.get(filePathName));
-                JsonObject jsonObject = JsonParser.parseString(fileContent).getAsJsonObject();
-                JsonArray inbox = jsonObject.getAsJsonArray("inbox");
-                inbox.add(emailToBeSent); //dovrei inserire in prima posizione in tempo ragionevole
-                Files.writeString(Paths.get(filePathName), jsonObject.toString());
-            } catch (IOException e) {
-                throw new RuntimeException("Error reading inbox file: " + e.getMessage());
-            }
+        String filePathName = "src/Storage/inboxes/" + emailAddress + ".txt";
+        try {
+            String fileContent = Files.readString(Paths.get(filePathName));
+            JsonObject jsonObject = JsonParser.parseString(fileContent).getAsJsonObject();
+            JsonArray inbox = jsonObject.getAsJsonArray("inbox");
+            inbox.add(emailToBeSent); //dovrei inserire in prima posizione in tempo ragionevole
+            Files.writeString(Paths.get(filePathName), jsonObject.toString());
+        } catch (IOException e) {
+            throw new RuntimeException("Error reading inbox file: " + e.getMessage());
         }
     }
 
@@ -73,15 +72,41 @@ public class RunnableSend implements Runnable {
 
             for (int i = 0; i < allMails.size(); i++) {
                 String emailAddress = allMails.get(i).getAsString();
-                int clientPort = server.getPort(allMails.get(i).getAsString());
-                if (clientPort != -1) { // check if the port exists for this email
-                    Socket clientSocket = new Socket("localhost", clientPort);
-                    sendFile(jsonObjectReq, clientSocket);
-                    clientSocket.close();
-                    logger.logSuccess("Mail sent to " + emailAddress + " correctly on port " + clientPort);
+                if(checkEmailInFileNames(emailAddress)) {
+                    if(this.server.hasKey(emailAddress)) {
+                        int clientPort = server.getPort(emailAddress);
+                        Socket clientSocket = new Socket("localhost", clientPort);
+                        sendFile(jsonObjectReq, clientSocket);
+                        clientSocket.close();
+                        logger.logSuccess("Mail sent to " + emailAddress + " correctly on port " + clientPort);
+                    }
+                    updateFile(emailAddress, mail);
                 }
-                updateFile(emailAddress, mail);
+                else{
+                    String from = mail.get("from").getAsString();
+                    if(this.server.hasKey(from)) {
+                        int clientPortFrom = server.getPort(from);
+                        Socket clientSocket = new Socket("localhost", clientPortFrom);
+                        sendError(clientSocket, emailAddress);
+                        logger.logError("Mail hasn't be sent. Address [" + emailAddress + "] does not exist");
+                        clientSocket.close();
+                    }
+                }
             }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void sendError(Socket socket, String to){
+        JsonObject jsonObjectError = new JsonObject();
+        jsonObjectError.addProperty("type", "send_error");
+        jsonObjectError.addProperty("to", to);
+        try{
+            OutputStream outputStream = socket.getOutputStream();
+            PrintWriter writer = new PrintWriter(outputStream, true); // Auto-flushing enabled
+            writer.println(jsonObjectError);
+            writer.flush();
         } catch (IOException e) {
             e.printStackTrace();
         }

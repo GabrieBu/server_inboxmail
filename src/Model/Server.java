@@ -10,6 +10,14 @@ public class Server{
         clientsInfo = new HashMap<>();
     }
 
+    public HashMap<String, Integer> getClientsInfo(){
+        return (HashMap<String, Integer>) clientsInfo;
+    }
+
+    public boolean hasKey(String key){
+        return clientsInfo.get(key) != null;
+    }
+
     public int getPort(String emailAddress){
         return clientsInfo.get(emailAddress);
     }

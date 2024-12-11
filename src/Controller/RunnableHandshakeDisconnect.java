@@ -32,9 +32,13 @@ public class RunnableHandshakeDisconnect implements Runnable{
         String typedMail = unpackMail(this.clientReqString);
         int clientPort = unpackPort(this.clientReqString);
 
-        if(this.typeReqString.equals("handshake"))
+        if(this.typeReqString.equals("handshake")) {
+            logger.logMessage("[" + typedMail + "] connected correctly on port " + clientPort);
             this.server.putPort(typedMail, clientPort);
-        else if(this.typeReqString.equals("disconnect"))
+        }
+        else if(this.typeReqString.equals("disconnect")) {
+            logger.logMessage("[" + typedMail + "] disconnected");
             this.server.deletePort(typedMail);
+        }
     }
 }

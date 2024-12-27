@@ -61,6 +61,9 @@ public class NetworkController {
                         break;
                     case "disconnect":
                         threadPool.execute(new RunnableHandshakeDisconnect(logger, clientReqString, server, typeRequestString));
+                    case "ping":
+                        //ignore ping
+                        break;
                     default:
                         logger.logError("Unrecognized type " + typeRequestString);
                 }

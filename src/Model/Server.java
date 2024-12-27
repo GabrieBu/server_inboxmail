@@ -23,7 +23,7 @@ public class Server{
     }
 
     public void putPort(String emailAddress, int port){
-        clientsInfo.put(emailAddress, port);
+        clientsInfo.put(emailAddress, port); //replaced value if we try to put multiple instances for a paritcular key (client)
     }
 
     public void deletePort(String emailAddress){

@@ -82,7 +82,7 @@ public class RunnableReply implements Runnable {
         }
     }
 
-    public void updateFile(String emailAddress, JsonObject emailToBeSent){
+    public synchronized void updateFile(String emailAddress, JsonObject emailToBeSent){
         String filePathName = "src/Storage/inboxes/" + emailAddress + ".txt";
         try {
             String fileContent = Files.readString(Paths.get(filePathName));

@@ -15,6 +15,9 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.HashMap;
 
+import java.nio.channels.*;
+import java.io.RandomAccessFile;
+
 public class RunnableSend implements Runnable {
     private final Logger logger;
     private final Server server;
@@ -51,16 +54,41 @@ public class RunnableSend implements Runnable {
     }
 
 
-    public void updateFile(String emailAddress, JsonObject emailToBeSent){
+    public void updateFile(String emailAddress, JsonObject emailToBeSent) {
         String filePathName = "src/Storage/inboxes/" + emailAddress + ".txt";
+        RandomAccessFile file = null;
+        FileChannel channel = null;
+        FileLock lock = null;
+
         try {
+            file = new RandomAccessFile(filePathName, "rw");
+            channel = file.getChannel();
+
+
+            lock = channel.lock();
+
             String fileContent = Files.readString(Paths.get(filePathName));
             JsonObject jsonObject = JsonParser.parseString(fileContent).getAsJsonObject();
             JsonArray inbox = jsonObject.getAsJsonArray("inbox");
-            inbox.add(emailToBeSent); //dovrei inserire in prima posizione in tempo ragionevole
+            inbox.add(emailToBeSent);
             Files.writeString(Paths.get(filePathName), jsonObject.toString());
+
         } catch (IOException e) {
-            throw new RuntimeException("Error reading inbox file: " + e.getMessage());
+            throw new RuntimeException("Error reading or writing to inbox file: " + e.getMessage());
+        } finally {
+            try {
+                if (lock != null) {
+                    lock.release();
+                }
+                if (channel != null) {
+                    channel.close();
+                }
+                if (file != null) {
+                    file.close();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 
